@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>Spotify Visualizer</title>
+
+<style>
+    body {
+        font-family: Verdana, sans-serif;
+        color: #ffffff;
+    }
+    h1, .play-button {
+        text-align: center;
+    }
+    #togglePlay {
+        margin-bottom: 1em;
+    }
+    .song-name-lyrics {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        border: double 6px;
+        border-radius: 25px;
+        width: 35%;
+        margin-left: auto;
+        margin-right: auto;
+        overflow: auto;
+        max-height: 400px;
+    }
+    .song-name-lyrics p {
+        padding: 0.75em;
+    }
+    form {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+    }
+    #name {
+        font-size: 20px;
+        margin-bottom: 0em;
+        padding-bottom: 0em;
+    }
+    #artists {
+        font-size: 20px;
+        margin-top: 0em;
+        padding-top: 0em;
+    }
+    #lyrics {
+        margin-top: 0em;
+    }
+    @keyframes move_wave {
+        0% {
+            transform: translateX(0) translateZ(0) scaleY(1)
+        }
+        50% {
+            transform: translateX(-25%) translateZ(0) scaleY(0.55)
+        }
+        100% {
+            transform: translateX(-50%) translateZ(0) scaleY(1)
+        }
+    }
+    .waveWrapper {
+        overflow: hidden;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        margin: auto;
+        z-index: -1;
+    }
+    .waveWrapperInner {
+        position: absolute;
+        width: 100%;
+        overflow: hidden;
+        height: 100%;
+        bottom: -1px;
+        background-image: linear-gradient(to top, #a0248f 30%, #5555d7 70%);
+    }
+    .bgTop {
+        z-index: -1;
+        opacity: 0.5;
+    }
+    .bgMiddle {
+        z-index: -3;
+        opacity: 0.75;
+    }
+    .bgBottom {
+        z-index: -5;
+    }
+    .wave {
+        position: absolute;
+        left: 0;
+        width: 200%;
+        height: 100%;
+        background-repeat: repeat no-repeat;
+        background-position: 0 bottom;
+        transform-origin: center bottom;
+    }
+    .waveTop {
+        background-size: 50% 100px;
+        z-index: -1;
+    }
+    .waveAnimation .waveTop {
+        animation: move-wave 3s;
+        -webkit-animation: move-wave 3s;
+        -webkit-animation-delay: 1s;
+        animation-delay: 1s;
+    }
+    .waveMiddle {
+        background-size: 50% 120px;
+    }
+    .waveAnimation .waveMiddle {
+        animation: move_wave 1s linear infinite;
+    }
+    .waveBottom {
+        background-size: 50% 100px;
+    }
+    .waveAnimation .waveBottom {
+        animation: move_wave 3s linear infinite;
+    }
+</style>
+</head>
+
+<body>
+    <div class="waveWrapper waveAnimation">
+        <div class="waveWrapperInner bgTop">
+          <div class="wave waveTop" style="background-image: url('http://front-end-noobs.com/jecko/img/wave-top.png')"></div>
+        </div>
+        <div class="waveWrapperInner bgMiddle">
+          <div class="wave waveMiddle" style="background-image: url('http://front-end-noobs.com/jecko/img/wave-mid.png')"></div>
+        </div>
+        <div class="waveWrapperInner bgBottom">
+          <div class="wave waveBottom" style="background-image: url('http://front-end-noobs.com/jecko/img/wave-bot.png')"></div>
+        </div>
+        <script>
+            async function fetchSongCharacteristics(){
+                body = fetch(`https://api.spotify.com/v1/audio-features/${trackID}`, {
+                headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer BQD7v2agNGVkk9RHFrKq3UdX0-MPpPuXrLCNmS_H1z3wYk7bSlva8vtalmDMpAdxLI21UbnDlijSjxyBOga3cW1QMIqKRKzIPS5xjPWBAPXh4RJbNZ8mT-tFYUKE5VU1K_WbeNkgLRcXkOSNdj_GU460BW8oCu8g48icsL4T0TArhQMiZEJkuZN2cE0me0iJf0pb2OgB'
+                }
+                }).then((response) => response.json())
+                .then((data) => changeWaveSpeed(data.energy))               
+            }
+
+            async function changeWaveSpeed(resp) {
+                document.getElementById("waveBottom") = energy;
+                document.getElementById("waveMiddle") = energy*1.5;
+            }
+            fetchSongCharacteristics();
+        </script>
+    </div>
+
+    <h1>Spotify Visualizer</h1>
+
+    <div class="play-button">
+        <p>Press 'Play' to listen!</p> 
+        <button id="togglePlay">Play</button>
+    </div>
+  
+    <div class="song-name-lyrics">
+        <article>
+            <p id="name"></p>
+            <p id="artists"></p>
+            <script>
+                async function fetchCurrentSong(){
+                    body = fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+                    headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer BQD7v2agNGVkk9RHFrKq3UdX0-MPpPuXrLCNmS_H1z3wYk7bSlva8vtalmDMpAdxLI21UbnDlijSjxyBOga3cW1QMIqKRKzIPS5xjPWBAPXh4RJbNZ8mT-tFYUKE5VU1K_WbeNkgLRcXkOSNdj_GU460BW8oCu8g48icsL4T0TArhQMiZEJkuZN2cE0me0iJf0pb2OgB'
+                }}).then((response) => handleResponse(response))
+                }  
+                
+                async function handleResponse(resp) {
+                    if(resp.status == 401) {
+                        document.getElementById("name").innerHTML = "Unauthorized, provide a valid token.";
+                    } else if (resp.status == 204) {
+                        document.getElementById("name").innerHTML = "No song playing.";
+                    } else if (resp.status == 200){
+                        resp_json = await resp.json()
+                        song_name = resp_json.item.name
+                        artist = resp_json.item.artists[0].name
+                        document.getElementById("name").innerHTML = song_name;
+                        document.getElementById("artists").innerHTML = artist;
+                    } else {
+                        document.getElementById("name").innerHTML = "Unknown error encountered: " + resp.status;
+                    }
+                }
+                fetchCurrentSong();
+                </script>
+        </article>
+
+        <script>
+            function listLanguages() {
+                var mylist = document.getElementById("myList");
+                document.getElementById("favorite").value = mylist.options[mylist.selectedIndex].text;
+            }
+
+            async function translateLyrics() {
+                console.log("Here")
+                
+                selected_language = document.getElementById("myList").value
+    
+                var language = {
+                    'language': selected_language,
+                    'lyrics': document.getElementById("lyrics").innerHTML
+                }
+
+                console.log("getting translation")
+                response = await fetch("http://localhost:8080/get-language", {
+                    method: 'POST',
+                    headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(language)
+                }).then((response) => response.json()).then(function (translated) {
+                    document.getElementById("lyrics").innerHTML = translated.translation;
+                    console.log("got lyrics", translated.translation)
+                });
+
+            }
+
+        </script>  
+        <form onsubmit="translateLyrics();return false">
+            <b> Select your language of choice </b>  
+            <select id="myList" onchange="listLanguages()"">  
+            <option> ---Choose language--- </option>  
+            <option> English </option>  
+            <option> Arabic </option>  
+            <option> Azerbaijani </option>  
+            <option> Chinese </option>
+            <option> Czech </option> 
+            <option> Danish </option> 
+            <option> Dutch </option>
+            <option> Esperanto </option>
+            <option> Finnish </option>
+            <option> French </option>
+            <option> German </option>
+            <option> Greek </option>
+            <option> Hebrew </option>
+            <option> Hindi </option>
+            <option> Hungarian </option>
+            <option> Indonesian </option>
+            <option> Irish </option>
+            <option> Italian </option>
+            <option> Japanese </option>
+            <option> Korean </option>
+            <option> Persian </option>
+            <option> Polish </option>
+            <option> Portugese </option>
+            <option> Russian </option>
+            <option> Slovak </option>
+            <option> Spanish </option>
+            <option> Swedish </option>
+            <option> Turkish </option>
+            <option> Ukranian </option>
+            </select>
+            <input type="submit" />
+        </form>
+
+        <article>
+            <p id="lyrics"></p>
+            <script>
+                var song_name_interval = setInterval(() => {
+                    song_name = document.getElementById("name").innerHTML
+                    artist_name = document.getElementById("artists").innerHTML
+                    if(song_name.length > 1 && artist_name.length > 1) {
+                        var url = '/get-track-details?song='+song_name+"&artist="+artist_name;
+                        var xmlHttp = new XMLHttpRequest();
+                        xmlHttp.onreadystatechange = function () {
+                            if (xmlHttp.readyState === 4) {
+                                lyrics = xmlHttp.responseText
+                                split_lyrics = lyrics.split("]")
+                                
+                                reformatted_lyrics = []
+                                split_lyrics.forEach(element => {
+                                    if (element.trim() + "]" != "]") {
+                                        reformatted_lyrics.push(element.trim()+"]");
+                                        reformatted_lyrics.push("<br>")
+                                    }                                    
+                                });
+                                
+                                split_lyrics = reformatted_lyrics.join("").split("[")
+                                reformatted_lyrics = []
+                                split_lyrics.forEach(element => {
+                                    if ("["+element.trim() != "[") {
+                                        reformatted_lyrics.push("</br>")
+                                        reformatted_lyrics.push("["+element.trim());
+                                    }
+                                });
+        
+                                document.getElementById("lyrics").innerHTML = reformatted_lyrics.join("");
+                            }
+                        }
+                        xmlHttp.open("GET", url, true); // false for synchronous request
+                        xmlHttp.send(song_name, artist_name);
+                        clearInterval(song_name_interval);
+                    }
+                }, 200);
+
+            </script>
+        </article>
+    </div>
+
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script>
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            const token = 'BQDrlqCZv2iz_z_qbYgRdjIqLnQTnmXOR5tcOBgshdNH_zWg5wbjqYb0qrRZJjZNbhuf6hl1ai8vcO7AfwEBc7uBZedUH_d-wxM341SaMXS9W91_1dN_Ml7dBY5-ofnVbXqyFfYra72C3SlkcnhhptKb5nnmjesWLkziUWA_6olRCOdpRgiwuL-9Er52N3Ilr1dIDBxKyvV_ox4k9rvROLU';
+            const player = new Spotify.Player({
+                name: 'Web Playback SDK Quick Start Player',
+                getOAuthToken: cb => { cb(token); },
+                volume: 0.5
+            });
+
+            // Ready
+            player.addListener('ready', ({ device_id }) => {
+                console.log('Ready with Device ID', device_id);
+            });
+
+            // Not Ready
+            player.addListener('not_ready', ({ device_id }) => {
+                console.log('Device ID has gone offline', device_id);
+            });
+
+            player.addListener('initialization_error', ({ message }) => {
+                console.error(message);
+            });
+
+            player.addListener('authentication_error', ({ message }) => {
+                console.error(message);
+            });
+
+            player.addListener('account_error', ({ message }) => {
+                console.error(message);
+            });
+
+            document.getElementById('togglePlay').onclick = function() {
+              player.togglePlay();
+            };
+
+            player.connect();
+        }
+    </script>
+</body>
+</html>
